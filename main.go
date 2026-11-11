@@ -12,8 +12,8 @@ type MessageReq struct {
 }
 
 type MessageRes struct {
-	Status  string
-	Message string
+	Status  string `json:"status"`
+	Message string `json:"message"`
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -26,16 +26,32 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		response := MessageRes{
 			Status:  "error",
-			Message: "Not right format",
+			Message: "❌ can not decode message",
 		}
 		json.NewEncoder(w).Encode(response)
-	} else {
-		response := MessageRes{
-			Status:  "success",
-			Message: messageReq.Message,
-		}
-		json.NewEncoder(w).Encode(response)
+		return
 	}
+
+	if messageReq.Message == "" {
+		response := MessageRes{
+			Status:  "error",
+			Message: "❌ message empty",
+		}
+		responseByte, err := json.Marshal(response)
+		if err != nil {
+			log.Println("❌ can not marshal response")
+			http.Error(w, "❌ can not marshal response", http.StatusInternalServerError)
+			return
+		}
+		http.Error(w, string(responseByte), http.StatusBadRequest)
+		return
+	}
+	response := MessageRes{
+		Status:  "success",
+		Message: messageReq.Message,
+	}
+	json.NewEncoder(w).Encode(response)
+
 }
 
 func main() {
