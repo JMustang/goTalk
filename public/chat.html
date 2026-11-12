@@ -1,10 +1,14 @@
 <h1>Chat Pages</h1>
 
+<div id="messages"></div>
+<br />
+<hr />
 <input type="text" id="inpMess" placeholder="Enter Messages" /><br /><br />
 <button onclick="send()">Send</button>
 
 <script>
-  const message = document.getElementById("inpMess");
+  const inpMess = document.getElementById("inpMess");
+  const messagesElm = document.getElementById("messages");
   async function send() {
     try {
       const data = {
@@ -23,10 +27,15 @@
         alert(result.message);
       }
       const result = await response.json();
-      const message = result.message;
-      alert("Send: " + message);
+      appendMessage(result.message);
     } catch (error) {
       console.error(`Error sending message: ${error.message}`);
     }
+  }
+
+  function appendMessage(mess) {
+    const messElm = document.createElement("div");
+    messElm.innerText = mess;
+    messagesElm.appendChild(messElm);
   }
 </script>
