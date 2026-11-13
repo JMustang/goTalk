@@ -2,8 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+
+	"golang.org/x/net/websocket"
 )
 
 type MessageReq struct {
@@ -54,11 +57,29 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func initSocket() {
+	origin := "http://localhost/"
+	url := "ws://localhost:3000/ws"
+	ws, err := websocket.Dial(url, "", origin)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if _, err := ws.Write([]byte("hello, world!\n")); err != nil {
+		log.Fatal(err)
+	}
+	var msg = make([]byte, 512)
+	var n int
+	if n, err = ws.Read(msg); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Received: %s. \n", msg[:n])
+}
+
 func main() {
 	fs := http.FileServer(http.Dir("./public"))
 	http.Handle("/web/", http.StripPrefix("/web/", fs))
-
-	// http.HandleFunc("/hello", handler)
 	http.HandleFunc("/api/send", handler)
+
+	initSocket()
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
